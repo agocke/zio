@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Alexandre Mutel. All rights reserved.
-// This file is licensed under the BSD-Clause 2 license. 
+// This file is licensed under the BSD-Clause 2 license.
 // See the license.txt file in the project root for more information.
 
 using System.Diagnostics;
@@ -11,7 +11,7 @@ using static Zio.FileSystemExceptionHelper;
 namespace Zio.FileSystems;
 
 /// <summary>
-/// A <see cref="IFileSystem"/> that can mount other filesystems on a root name. 
+/// A <see cref="IFileSystem"/> that can mount other filesystems on a root name.
 /// This mount filesystem supports also an optionnal fallback delegate FileSystem if a path was not found through a mount
 /// </summary>
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + "(),nq} Count={_mounts.Count}")]
@@ -434,6 +434,50 @@ public class MountFileSystem : ComposeFileSystem
         }
     }
 
+#if NETCOREAPP
+    /// <inheritdoc />
+    protected override void MoveFileImpl(UPath srcPath, UPath destPath, bool overwrite)
+    {
+        var originalSrcPath = srcPath;
+        var originalDestPath = destPath;
+        if (!FileExistsImpl(srcPath))
+        {
+            throw NewFileNotFoundException(srcPath);
+        }
+
+        var destDirectory = destPath.GetDirectory();
+        if (!DirectoryExistsImpl(destDirectory))
+        {
+            throw NewDirectoryNotFoundException(destDirectory);
+        }
+
+        if (!overwrite && FileExistsImpl(destPath))
+        {
+            throw new IOException($"The destination path `{destPath}` already exists");
+        }
+
+        var srcfs = TryGetMountOrNext(ref srcPath);
+        var destfs = TryGetMountOrNext(ref destPath);
+
+        if (srcfs != null && srcfs == destfs)
+        {
+            srcfs.MoveFile(srcPath, destPath, overwrite);
+        }
+        else if (srcfs != null && destfs != null)
+        {
+            srcfs.MoveFileCross(srcPath, destfs, destPath);
+        }
+        else
+        {
+            if (srcfs is null)
+            {
+                throw NewFileNotFoundException(originalSrcPath);
+            }
+            throw NewDirectoryNotFoundException(originalDestPath);
+        }
+    }
+#endif
+
     /// <inheritdoc />
     protected override void DeleteFileImpl(UPath path)
     {
@@ -595,7 +639,7 @@ public class MountFileSystem : ComposeFileSystem
 
             return locations;
         }
-        
+
         var directoryToVisit = new List<UPath>();
         directoryToVisit.Add(path);
 
@@ -613,7 +657,7 @@ public class MountFileSystem : ComposeFileSystem
             sortedDirectories.Clear();
 
             var locations = GetSearchLocations(pathToVisit);
-            
+
             // Only need to search within one filesystem, no need to sort or do other work
             if (locations.Count == 1 && locations[0].FileSystem != this && (!first || searchOption == SearchOption.AllDirectories))
             {
@@ -851,7 +895,7 @@ public class MountFileSystem : ComposeFileSystem
     protected override IFileSystemWatcher WatchImpl(UPath path)
     {
         // TODO: create/delete events when mounts are added/removed
-        
+
         var watcher = new AggregateWatcher(this, path);
 
         foreach (var kvp in _mounts)
@@ -965,7 +1009,7 @@ public class MountFileSystem : ComposeFileSystem
         {
             return mountfs;
         }
-        
+
         mountPath = UPath.Null;
         return Fallback;
     }
@@ -981,7 +1025,7 @@ public class MountFileSystem : ComposeFileSystem
             remainingPath = UPath.Root;
             return true;
         }
-        
+
         remainingPath = GetRemaining(mountPrefix, watchPath);
         return !remainingPath.IsNull;
     }

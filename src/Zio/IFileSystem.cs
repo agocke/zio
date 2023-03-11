@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Alexandre Mutel. All rights reserved.
-// This file is licensed under the BSD-Clause 2 license. 
+// This file is licensed under the BSD-Clause 2 license.
 // See the license.txt file in the project root for more information.
 
 using System;
@@ -38,7 +38,7 @@ namespace Zio
         void MoveDirectory(UPath srcPath, UPath destPath);
 
         /// <summary>
-        /// Deletes the specified directory and, if indicated, any subdirectories and files in the directory. 
+        /// Deletes the specified directory and, if indicated, any subdirectories and files in the directory.
         /// </summary>
         /// <param name="path">The path of the directory to remove.</param>
         /// <param name="isRecursive"><c>true</c> to remove directories, subdirectories, and files in path; otherwise, <c>false</c>.</param>
@@ -76,9 +76,9 @@ namespace Zio
         /// Determines whether the specified file exists.
         /// </summary>
         /// <param name="path">The path.</param>
-        /// <returns><c>true</c> if the caller has the required permissions and path contains the name of an existing file; 
-        /// otherwise, <c>false</c>. This method also returns false if path is null, an invalid path, or a zero-length string. 
-        /// If the caller does not have sufficient permissions to read the specified file, 
+        /// <returns><c>true</c> if the caller has the required permissions and path contains the name of an existing file;
+        /// otherwise, <c>false</c>. This method also returns false if path is null, an invalid path, or a zero-length string.
+        /// If the caller does not have sufficient permissions to read the specified file,
         /// no exception is thrown and the method returns false regardless of the existence of path.</returns>
         bool FileExists(UPath path);
 
@@ -89,8 +89,18 @@ namespace Zio
         /// <param name="destPath">The new path and name for the file.</param>
         void MoveFile(UPath srcPath, UPath destPath);
 
+#if NETCOREAPP
         /// <summary>
-        /// Deletes the specified file. 
+        /// Moves a specified file to a new location, providing the option to specify a new file name.
+        /// </summary>
+        /// <param name="srcPath">The path of the file to move.</param>
+        /// <param name="destPath">The new path and name for the file.</param>
+        /// <param name="overwrite"><c>true</c> to overwrite the destination file if it already exists; <c>false</c> otherwise.</param>
+        void MoveFile(UPath srcPath, UPath destPath, bool overwrite);
+#endif
+
+        /// <summary>
+        /// Deletes the specified file.
         /// </summary>
         /// <param name="path">The path of the file to be deleted.</param>
         void DeleteFile(UPath path);
@@ -212,7 +222,7 @@ namespace Zio
         // ----------------------------------------------
 
         /// <summary>
-        /// Converts the specified path to the underlying path used by this <see cref="IFileSystem"/>. In case of a <see cref="Zio.FileSystems.PhysicalFileSystem"/>, it 
+        /// Converts the specified path to the underlying path used by this <see cref="IFileSystem"/>. In case of a <see cref="Zio.FileSystems.PhysicalFileSystem"/>, it
         /// would represent the actual path on the disk.
         /// </summary>
         /// <param name="path">The path.</param>
@@ -226,9 +236,9 @@ namespace Zio
         /// <returns>The converted path according to the system path.</returns>
         UPath ConvertPathFromInternal(string systemPath);
     }
-    
+
     /// <summary>
-    /// Used by <see cref="IFileSystem.EnumerateItems"/>. 
+    /// Used by <see cref="IFileSystem.EnumerateItems"/>.
     /// </summary>
     /// <param name="item">The file system item to filer.</param>
     /// <returns><c>true</c> if the item should be kept; otherwise <c>false</c>.</returns>

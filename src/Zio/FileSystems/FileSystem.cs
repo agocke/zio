@@ -266,6 +266,15 @@ public abstract class FileSystem : IFileSystem
         MoveFileImpl(ValidatePath(srcPath, nameof(srcPath)), ValidatePath(destPath, nameof(destPath)));
     }
 
+#if NETCOREAPP
+    /// <inheritdoc />
+    public void MoveFile(UPath srcPath, UPath destPath, bool overwrite)
+    {
+        AssertNotDisposed();
+        MoveFileImpl(ValidatePath(srcPath, nameof(srcPath)), ValidatePath(destPath, nameof(destPath)));
+    }
+#endif
+
     /// <summary>
     /// Implementation for <see cref="CopyFile"/>, <paramref name="srcPath"/> and <paramref name="destPath"/>
     /// are guaranteed to be absolute and validated through <see cref="ValidatePath"/>.
@@ -274,6 +283,19 @@ public abstract class FileSystem : IFileSystem
     /// <param name="srcPath">The path of the file to move.</param>
     /// <param name="destPath">The new path and name for the file.</param>
     protected abstract void MoveFileImpl(UPath srcPath, UPath destPath);
+
+#if NETCOREAPP
+    /// <summary>
+    /// Implementation for <see cref="CopyFile"/>, <paramref name="srcPath"/> and <paramref name="destPath"/>
+    /// are guaranteed to be absolute and validated through <see cref="ValidatePath"/>.
+    /// Moves a specified file to a new location, providing the option to specify a new file name.
+    /// </summary>
+    /// <param name="srcPath">The path of the file to move.</param>
+    /// <param name="destPath">The new path and name for the file.</param>
+    /// <param name="overwrite"><c>true</c> to allow an existing file to be overwritten; otherwise, <c>false</c>.</param>
+    protected abstract void MoveFileImpl(UPath srcPath, UPath destPath, bool overwrite);
+#endif
+
 
     /// <inheritdoc />
     public void DeleteFile(UPath path)

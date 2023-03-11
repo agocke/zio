@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Alexandre Mutel. All rights reserved.
-// This file is licensed under the BSD-Clause 2 license. 
+// This file is licensed under the BSD-Clause 2 license.
 // See the license.txt file in the project root for more information.
 
 using System.Diagnostics;
@@ -71,6 +71,14 @@ public class ReadOnlyFileSystem : ComposeFileSystem
     {
         throw new IOException(FileSystemIsReadOnly);
     }
+
+#if NETCOREAPP
+    /// <inheritdoc />
+    protected override void MoveFileImpl(UPath srcPath, UPath destPath, bool overwrite)
+    {
+        throw new IOException(FileSystemIsReadOnly);
+    }
+#endif
 
     /// <inheritdoc />
     protected override void DeleteFileImpl(UPath path)

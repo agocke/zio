@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Alexandre Mutel. All rights reserved.
-// This file is licensed under the BSD-Clause 2 license. 
+// This file is licensed under the BSD-Clause 2 license.
 // See the license.txt file in the project root for more information.
 
 using System.Diagnostics;
@@ -190,6 +190,22 @@ public class PhysicalFileSystem : FileSystem
         }
         File.Move(ConvertPathToInternal(srcPath), ConvertPathToInternal(destPath));
     }
+
+#if NETCOREAPP
+    /// <inheritdoc />
+    protected override void MoveFileImpl(UPath srcPath, UPath destPath, bool overwrite)
+    {
+        if (IsWithinSpecialDirectory(srcPath))
+        {
+            throw new UnauthorizedAccessException($"The access to `{srcPath}` is denied");
+        }
+        if (IsWithinSpecialDirectory(destPath))
+        {
+            throw new UnauthorizedAccessException($"The access to `{destPath}` is denied");
+        }
+        File.Move(ConvertPathToInternal(srcPath), ConvertPathToInternal(destPath), overwrite);
+    }
+#endif
 
     /// <inheritdoc />
     protected override void DeleteFileImpl(UPath path)
@@ -503,7 +519,7 @@ public class PhysicalFileSystem : FileSystem
             case SearchTarget.Both:
                 results = Directory.EnumerateFileSystemEntries(ConvertPathToInternal(path), searchPattern, searchOption);
                 break;
-            
+
             default:
                 yield break;
         }
@@ -879,8 +895,8 @@ public class PhysicalFileSystem : FileSystem
 
         var dirName = path.GetName();
         // Else check that we have a valid drive path (e.g /drive/c)
-        return parentDirectory == PathDrivePrefixOnWindows && 
-               dirName.Length == 1 && 
+        return parentDirectory == PathDrivePrefixOnWindows &&
+               dirName.Length == 1 &&
                DriveInfo.GetDrives().Any(p => char.ToLowerInvariant(p.Name[0]) == dirName[0]);
     }
 
